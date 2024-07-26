@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontapp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontapp
+  template:
+    metadata:
+      labels:
+        app: frontapp
+    spec:
+      containers:
+        - name: frontapp
+          image: frontapp:dragonball
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontapp-service
+spec:
+  selector:
+    app: frontapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontapp-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: frontapp-dragonball.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontapp-service
+                port:
+                  number: 80
