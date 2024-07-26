@@ -2,7 +2,7 @@
 
 En esta solución nos iremos acercando al resultado final esperado que será desplegar backend y frontend en local bajo minikube simulando un despliegue real en kubernetes.
 
-En esta opción no vamos a usar un manifiesto, sino que vamos a directamente exponer puertos, servicios, etc.
+En esta opción vamos a utilizar un manifiesto para el backend
 
 ## Pasos
 
@@ -21,13 +21,46 @@ eval $(minikube docker-env)
 3. Construir la imagen docker
 
 ```bash
-docker built -t backapp:v2 .
+docker built -t backapp:v3 .
 ```
 
-4. Crear el deployment hacendo que apunte al puerto 8080, con la imagen creada anteriormente
+4. Crear el manifiesto creando tanto la parte del deployment como la parte del servicio
 
-```bash
-kubectl create deployment backapp --image=backapp:v2 --port=8080
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backapp-deployment
+spec:
+  selector:
+    matchLabels:
+      app: backapp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: backapp
+    spec:
+      containers:
+        - name: backapp
+          image: backapp:v3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backapp-service
+spec:
+  ports:
+    - protocol: "TCP"
+      port: 8080 # The port inside the cluster
+      targetPort: 8080 # The port exposed by the service
+  type: NodePort # Type of service
+  selector:
+    app: backapp
 ```
 
 5. Crear el servicio haciendolo de tipo NodePort
