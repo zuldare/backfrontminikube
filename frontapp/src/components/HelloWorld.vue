@@ -16,7 +16,8 @@ export default {
   methods: {
     fetchMessage() {
       console.log("Before fecth");
-      fetch("http://localhost:8080/hello")
+      //fetch("http://localhost:8080/hello")
+      fetch("http://127.0.0.1:53557/hello")
         .then((response) => response.text())
         .then((data) => {
           this.message = data;
